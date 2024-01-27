@@ -32,6 +32,8 @@ import androidx.navigation.NavController
 import com.example.livechat.DestinationScreen
 import com.example.livechat.LCViewModel
 import com.example.livechat.R
+import com.example.livechat.checkSignedIn
+import com.example.livechat.commonProgressBar
 import com.example.livechat.navigateTo
 
 
@@ -41,6 +43,8 @@ fun SignUpScreen(
     navController: NavController,
     vm: LCViewModel
 ) {
+
+    checkSignedIn(vm = vm, navController = navController)
 
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
@@ -87,38 +91,51 @@ fun SignUpScreen(
             )
             OutlinedTextField(
                 value = numberState.value, onValueChange = {
-                    nameState.value = it
+                    numberState.value = it
                 },
                 label = { Text(text = "Phone") },
                 modifier = Modifier.padding(8.dp)
             )
             OutlinedTextField(
                 value = emailState.value, onValueChange = {
-                    nameState.value = it
+                    emailState.value = it
                 },
                 label = { Text(text = "Email") },
                 modifier = Modifier.padding(8.dp)
             )
             OutlinedTextField(
                 value = passwordState.value, onValueChange = {
-                    nameState.value = it
+                    passwordState.value = it
                 },
                 label = { Text(text = "Password") },
                 modifier = Modifier.padding(8.dp)
             )
-
-            Button(onClick = { /*TODO*/ },
-                modifier = Modifier.padding(8.dp)) {
+            Button(
+                onClick = {
+                    vm.signUp(
+                        nameState.value.text,
+                        numberState.value.text,
+                        emailState.value.text,
+                        passwordState.value.text,
+                    )
+                },
+                modifier = Modifier.padding(8.dp)
+            ) {
                 Text(text = "Sign up")
 
             }
             Text(text = "Already have a account, Sign In ->",
-                 color = Color.Blue,
-                modifier = Modifier.padding(8.dp).
-            clickable {
-                navigateTo(navController, DestinationScreen.Login.route)
-            })
+                color = Color.Blue,
+                modifier = Modifier
+                    .padding(8.dp)
+                    .clickable {
+                        navigateTo(navController, DestinationScreen.Login.route)
+                    })
         }
+    }
+
+    if(vm.inProgress.value){
+        commonProgressBar()
     }
 
 }

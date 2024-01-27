@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "197209496844",
+    "project_id": "aglivechat",
+    "storage_bucket": "aglivechat.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:197209496844:android:40a5498cb8ff0ca6a73d29",
+        "android_client_info": {
+          "package_name": "com.example.livechat"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA4tnAqRQBoMIc00npiUItID4AvD9nz3ZM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
