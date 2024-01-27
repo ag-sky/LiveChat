@@ -14,9 +14,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
+import com.example.livechat.Screens.ChatListScreen
 import com.example.livechat.Screens.LoginScreen
 import com.example.livechat.Screens.SignUpScreen
 import com.example.livechat.ui.theme.LiveChatTheme
+import dagger.hilt.android.AndroidEntryPoint
 
 
 sealed class DestinationScreen(var route: String) {
@@ -34,7 +36,7 @@ sealed class DestinationScreen(var route: String) {
     }
 
 }
-
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -63,6 +65,10 @@ class MainActivity : ComponentActivity() {
             }
             composable(DestinationScreen.Login.route) {
                 LoginScreen()
+            }
+
+            composable(DestinationScreen.ChatList.route) {
+                ChatListScreen()
             }
         }
     }
