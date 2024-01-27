@@ -62,6 +62,26 @@ class LCViewModel @Inject constructor(
         }
     }
 
+    fun loginIn(email : String, password : String){
+        if( email.isEmpty() or password.isEmpty()){
+            handleException(customMessage = "please fill all fields")
+            return
+        }else{
+            inProgress.value = true
+            auth.signInWithEmailAndPassword(email,password).addOnCompleteListener{
+                if(it.isSuccessful){
+                    signIn.value = true
+                    inProgress.value = false
+                    auth.currentUser?.uid?.let{
+                        getUserData(it)
+                    }
+                }else{
+                    handleException(exception = it.exception, customMessage = "login failed!")
+                }
+            }
+        }
+    }
+
     fun handleException(exception: Exception? = null, customMessage: String = "") {
         Log.e("liveChatApp", "Live Chat Error/Exception", exception)
         exception?.printStackTrace()
