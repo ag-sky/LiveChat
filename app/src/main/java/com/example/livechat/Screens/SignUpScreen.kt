@@ -113,10 +113,10 @@ fun SignUpScreen(
             Button(
                 onClick = {
                     vm.signUp(
-                        nameState.value.text,
-                        numberState.value.text,
-                        emailState.value.text,
-                        passwordState.value.text,
+                        name =nameState.value.text,
+                       number = numberState.value.text,
+                       email =  emailState.value.text,
+                       password =  passwordState.value.text,
                     )
                 },
                 modifier = Modifier.padding(8.dp)

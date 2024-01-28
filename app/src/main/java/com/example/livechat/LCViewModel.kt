@@ -1,5 +1,6 @@
 package com.example.livechat
 
+import android.net.Uri
 import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
@@ -11,14 +12,17 @@ import com.example.livechat.data.UserData
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.toObject
+import com.google.firebase.storage.FirebaseStorage
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.lang.Exception
+import java.util.UUID
 import javax.inject.Inject
 
 @HiltViewModel
 class LCViewModel @Inject constructor(
     val auth: FirebaseAuth,
     var db : FirebaseFirestore,
+    val storage : FirebaseStorage
 ) : ViewModel() {
 
 
@@ -59,6 +63,26 @@ class LCViewModel @Inject constructor(
                     handleException(customMessage = "number already exits!")
                     inProgress.value = false
                 }
+        }
+    }
+
+    fun loginIn(email : String, password : String){
+        if( email.isEmpty() or password.isEmpty()){
+            handleException(customMessage = "please fill all fields")
+            return
+        }else{
+            inProgress.value = true
+            auth.signInWithEmailAndPassword(email,password).addOnCompleteListener{
+                if(it.isSuccessful){
+                    signIn.value = true
+                    inProgress.value = false
+                    auth.currentUser?.uid?.let{
+                        getUserData(it)
+                    }
+                }else{
+                    handleException(exception = it.exception, customMessage = "login failed!")
+                }
+            }
         }
     }
 
@@ -113,5 +137,35 @@ class LCViewModel @Inject constructor(
             }
         }
     }
+
+    fun uploadProfileImage(uri: Uri) {
+        upLoadImage(uri){
+                     createOrUpdateProfile(imageUrl = it.toString())
+        }
+    }
+
+    fun upLoadImage(uri: Uri, onSuccess:(Uri) -> Unit){
+        inProgress.value = true
+        val storageRef = storage.reference
+        val uuid = UUID.randomUUID()
+        val imageRef = storageRef.child("images/$uuid")
+        val uploadTask = imageRef.putFile(uri)
+        uploadTask.addOnSuccessListener {
+            val result = it.metadata?.reference?.downloadUrl
+            result?.addOnSuccessListener(onSuccess)
+            inProgress.value = false
+        }
+            .addOnFailureListener{
+                handleException(it)
+            }
+    }
+
+    fun logOut() {
+        auth.signOut()
+        signIn.value = false
+        userData.value = null
+        eventMutableState. value = Event("Logged Out")
+    }
+
 }
 
