@@ -19,6 +19,7 @@ import com.example.livechat.Screens.LoginScreen
 import com.example.livechat.Screens.ProfileScreen
 import com.example.livechat.Screens.SignUpScreen
 import com.example.livechat.Screens.SingleChatScreen
+import com.example.livechat.Screens.SingleStatusScreen
 import com.example.livechat.Screens.StatusScreen
 import com.example.livechat.ui.theme.LiveChatTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -39,6 +40,7 @@ sealed class DestinationScreen(var route: String) {
     }
 
 }
+
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -67,24 +69,30 @@ class MainActivity : ComponentActivity() {
 
             }
             composable(DestinationScreen.Login.route) {
-                LoginScreen(vm,navController)
+                LoginScreen(vm, navController)
             }
 
             composable(DestinationScreen.ChatList.route) {
-                ChatListScreen(navController= navController, vm = vm)
+                ChatListScreen(navController = navController, vm = vm)
             }
             composable(DestinationScreen.SingleChat.route) {
                 var chatId = it.arguments?.getString("chatId")
                 chatId?.let {
-                    SingleChatScreen(navController= navController, vm = vm, chatId = chatId)
+                    SingleChatScreen(navController = navController, vm = vm, chatId = chatId)
 
                 }
             }
             composable(DestinationScreen.StatusList.route) {
-                StatusScreen(navController= navController, vm = vm)
+                StatusScreen(navController = navController, vm = vm)
             }
             composable(DestinationScreen.Profile.route) {
-                ProfileScreen(navController= navController, vm = vm)
+                ProfileScreen(navController = navController, vm = vm)
+            }
+            composable(DestinationScreen.SingleStatus.route) {
+                val userId = it.arguments?.getString("userId")
+                userId?.let {
+                    SingleStatusScreen(navController, vm, userId = it)
+                }
             }
         }
     }

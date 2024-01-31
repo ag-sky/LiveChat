@@ -13,6 +13,8 @@ import com.example.livechat.data.ChatUser
 import com.example.livechat.data.Event
 import com.example.livechat.data.MESSAGE
 import com.example.livechat.data.Message
+import com.example.livechat.data.STATUS
+import com.example.livechat.data.Status
 import com.example.livechat.data.USER_NODE
 import com.example.livechat.data.UserData
 import com.google.firebase.auth.FirebaseAuth
@@ -44,7 +46,9 @@ class LCViewModel @Inject constructor(
     val chats = mutableStateOf<List<ChatData>>(listOf())
     val chatMessages = mutableStateOf<List<Message>>(listOf())
     val inProgressChatMessage = mutableStateOf(false)
-    var currentChatMessageListener : ListenerRegistration?=null
+    var currentChatMessageListener: ListenerRegistration? = null
+    val status = mutableStateOf<List<Status>>(listOf())
+    val inProgressStatus = mutableStateOf(false)
 
     init {
         val currentUser = auth.currentUser
@@ -102,44 +106,43 @@ class LCViewModel @Inject constructor(
         }
     }
 
-    fun depopulateMessage(){
+    fun depopulateMessage() {
         chatMessages.value = listOf()
         currentChatMessageListener = null
 
     }
 
-    fun populateMessages(chatId: String){
+    fun populateMessages(chatId: String) {
         inProgressChatMessage.value = true
-        currentChatMessageListener = db.collection(CHATS).document(chatId).collection(MESSAGE).addSnapshotListener{
-            value, error ->
-            if(error!= null) {
-                handleException(error)
+        currentChatMessageListener = db.collection(CHATS).document(chatId).collection(MESSAGE)
+            .addSnapshotListener { value, error ->
+                if (error != null) {
+                    handleException(error)
+
+                }
+                if (value != null) {
+                    chatMessages.value = value.documents.mapNotNull {
+                        it.toObject<Message>()
+                    }.sortedBy { it.timeStamp }
+                    inProgressChatMessage.value = false
+                }
 
             }
-            if(value != null){
-                chatMessages.value = value.documents.mapNotNull {
-                    it.toObject<Message>()
-                }.sortedBy { it.timeStamp }
-                inProgressChatMessage.value = false
-            }
-
-        }
     }
 
-    fun populateChats(){
+    fun populateChats() {
         inProgressChats.value = true
         db.collection(CHATS).where(
             Filter.or(
                 Filter.equalTo("user1.userId", userData.value?.userId),
                 Filter.equalTo("user2.userId", userData.value?.userId),
             )
-        ).addSnapshotListener{
-            value, error ->
-            if(error != null){
+        ).addSnapshotListener { value, error ->
+            if (error != null) {
                 handleException(error)
 
             }
-            if(value != null){
+            if (value != null) {
                 chats.value = value.documents.mapNotNull {
                     it.toObject<ChatData>()
                 }
@@ -148,9 +151,9 @@ class LCViewModel @Inject constructor(
         }
     }
 
-    fun onSendReply(chatID : String, message : String){
+    fun onSendReply(chatID: String, message: String) {
         val time = Calendar.getInstance().time.toString()
-        val msg=  Message(userData.value?.userId, message, time)
+        val msg = Message(userData.value?.userId, message, time)
         db.collection(CHATS).document(chatID).collection(MESSAGE).document().set(msg)
     }
 
@@ -207,6 +210,7 @@ class LCViewModel @Inject constructor(
                 userData.value = user
                 inProgress.value = false
                 populateChats()
+                populateStatus()
             }
         }
     }
@@ -232,7 +236,6 @@ class LCViewModel @Inject constructor(
                 handleException(it)
             }
     }
-
 
 
     fun logOut() {
@@ -286,7 +289,7 @@ class LCViewModel @Inject constructor(
                                 db.collection(CHATS).document(id).set(chat)
                             }
                         }
-                        .addOnFailureListener{
+                        .addOnFailureListener {
                             handleException(it)
                         }
                 } else {
@@ -294,6 +297,71 @@ class LCViewModel @Inject constructor(
                 }
             }
         }
+    }
+
+    fun upLoadStatus(uri: Uri) {
+        upLoadImage(uri) {
+            createStatus(it.toString())
+        }
+    }
+
+    fun populateStatus() {
+        val timeDelta = 24L *60 *60 *1000
+        val cutOff = System.currentTimeMillis() - timeDelta
+
+        inProgressStatus.value = true
+        db.collection(CHATS).where(
+            Filter.or(
+                Filter.equalTo(
+                    "user1.userId", userData.value?.userId
+                ),
+                Filter.equalTo(
+                    "user2.userId", userData.value?.userId
+                )
+            )
+        ).addSnapshotListener{
+            value, error ->
+            if(error!= null)
+                handleException(error)
+            if(value!=null){
+                val currentConnections  = arrayListOf(userData.value?.userId)
+                val chats = value.toObjects<ChatData>()
+                chats.forEach{
+                    chat ->
+                    if(chat.user1.userId == userData.value?.userId){
+                        currentConnections.add(chat.user2.userId)
+                    }else{
+                        currentConnections.add(chat.user1.userId)
+                    }
+                }
+
+                db.collection(STATUS).whereGreaterThan("timestamp",cutOff).whereIn("user.userId", currentConnections).addSnapshotListener{
+                    value ,error ->
+                    if(error != null)
+                        handleException(error)
+                    if(value!=null)
+                        status.value = value.toObjects()
+                    inProgressStatus.value =false
+                }
+            }
+
+        }
+
+    }
+
+    fun createStatus(imageUrl: String) {
+        val newStatus = Status(
+            ChatUser(
+                userData.value?.userId,
+                userData.value?.name,
+                userData.value?.imageUrl,
+                userData.value?.number,
+
+                ),
+            imageUrl,
+            System.currentTimeMillis()
+        )
+        db.collection(STATUS).document().set(newStatus)
     }
 
 }
