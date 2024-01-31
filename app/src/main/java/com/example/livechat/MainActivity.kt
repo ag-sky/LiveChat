@@ -18,6 +18,7 @@ import com.example.livechat.Screens.ChatListScreen
 import com.example.livechat.Screens.LoginScreen
 import com.example.livechat.Screens.ProfileScreen
 import com.example.livechat.Screens.SignUpScreen
+import com.example.livechat.Screens.SingleChatScreen
 import com.example.livechat.Screens.StatusScreen
 import com.example.livechat.ui.theme.LiveChatTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -71,6 +72,13 @@ class MainActivity : ComponentActivity() {
 
             composable(DestinationScreen.ChatList.route) {
                 ChatListScreen(navController= navController, vm = vm)
+            }
+            composable(DestinationScreen.SingleChat.route) {
+                var chatId = it.arguments?.getString("chatId")
+                chatId?.let {
+                    SingleChatScreen(navController= navController, vm = vm, chatId = chatId)
+
+                }
             }
             composable(DestinationScreen.StatusList.route) {
                 StatusScreen(navController= navController, vm = vm)
