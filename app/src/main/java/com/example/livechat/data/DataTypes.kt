@@ -23,6 +23,13 @@ data class ChatData(
 
 )
 
+data class Status(
+    val user : ChatUser = ChatUser(),
+    val imageUrl: String?="",
+    val timestamp : Long?=null,
+)
+
+
 data class ChatUser(
     val userId : String?="",
     val name: String?= "",
